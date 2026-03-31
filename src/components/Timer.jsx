@@ -18,9 +18,34 @@ export default function Timer({ hasNav }) {
   const [running, setRunning]     = useState(false)
   const [finished, setFinished]   = useState(false)
 
-  const endTimeRef  = useRef(null)
-  const intervalRef = useRef(null)
-  const audioRef    = useRef(null)   // HTMLAudioElement — reliable on iOS PWA
+  const endTimeRef   = useRef(null)
+  const intervalRef  = useRef(null)
+  const audioRef     = useRef(null)   // HTMLAudioElement — reliable on iOS PWA
+  const wakeLockRef  = useRef(null)   // WakeLockSentinel
+
+  // ── Wake Lock: keep screen on while timer is running ───────────────────────
+  const requestWakeLock = useCallback(async () => {
+    if (!('wakeLock' in navigator)) return
+    try {
+      wakeLockRef.current = await navigator.wakeLock.request('screen')
+    } catch (e) {
+      // denied (e.g. low battery) — fail silently
+    }
+  }, [])
+
+  const releaseWakeLock = useCallback(() => {
+    wakeLockRef.current?.release()
+    wakeLockRef.current = null
+  }, [])
+
+  // Re-acquire wake lock if the OS released it when screen went off
+  useEffect(() => {
+    const onVisible = () => {
+      if (!document.hidden && running) requestWakeLock()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [running, requestWakeLock])
 
   // ── Unlock audio on first user gesture ─────────────────────────────────────
   const initAudio = useCallback(() => {
@@ -56,8 +81,9 @@ export default function Timer({ hasNav }) {
     setRunning(false)
     setFinished(true)
     setRemaining(0)
+    releaseWakeLock()
     playFanfare()
-  }, [playFanfare])
+  }, [playFanfare, releaseWakeLock])
 
   // ── Tick: wall-clock based ─────────────────────────────────────────────────
   const tick = useCallback(() => {
@@ -106,6 +132,7 @@ export default function Timer({ hasNav }) {
       endTimeRef.current = endMs
       setRemaining(left)
       setRunning(true)
+      requestWakeLock()
     } else {
       localStorage.removeItem(LS_END)
       setFinished(true)
@@ -122,6 +149,7 @@ export default function Timer({ hasNav }) {
     localStorage.setItem(LS_END, endMs.toString())
     if (finished) { setRemaining(total); setFinished(false) }
     setRunning(true)
+    requestWakeLock()
   }
 
   const pause = () => {
@@ -131,6 +159,7 @@ export default function Timer({ hasNav }) {
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
     setRunning(false)
+    releaseWakeLock()
   }
 
   const reset = () => {
@@ -140,6 +169,7 @@ export default function Timer({ hasNav }) {
     setRunning(false)
     setFinished(false)
     setRemaining(total)
+    releaseWakeLock()
   }
 
   const setDuration = (min) => {
