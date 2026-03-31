@@ -7,105 +7,82 @@ const LS_END     = 'timer-end-v1'
 const LS_TOTAL   = 'timer-total-v1'
 const LS_MINUTES = 'timer-minutes-v1'
 
-const FANFARE_PATH = `${import.meta.env.BASE_URL}assets/Triumphant_brass_fanfare,_celebratory_and_uplifting.mp3`
+// Comma in filename must be encoded for fetch
+const FANFARE_URL = `${import.meta.env.BASE_URL}assets/Triumphant_brass_fanfare%2C_celebratory_and_uplifting.mp3`
 
 export default function Timer({ hasNav }) {
-  const [open, setOpen]       = useState(false)
-  const [minutes, setMinutes] = useState(() => parseInt(localStorage.getItem(LS_MINUTES) || '10'))
-  const [total, setTotal]     = useState(() => parseInt(localStorage.getItem(LS_TOTAL)   || '600'))
+  const [open, setOpen]           = useState(false)
+  const [minutes, setMinutes]     = useState(() => parseInt(localStorage.getItem(LS_MINUTES) || '10'))
+  const [total, setTotal]         = useState(() => parseInt(localStorage.getItem(LS_TOTAL)   || '600'))
   const [remaining, setRemaining] = useState(600)
-  const [running, setRunning] = useState(false)
+  const [running, setRunning]     = useState(false)
   const [finished, setFinished]   = useState(false)
 
-  const endTimeRef        = useRef(null)
-  const intervalRef       = useRef(null)
-  const audioCtxRef       = useRef(null)
-  const fanfareBufferRef  = useRef(null)
-  const scheduledSrcRef   = useRef(null)
-  const keepAliveSrcRef   = useRef(null)
-  const audioReadyRef     = useRef(false)
+  const endTimeRef      = useRef(null)
+  const intervalRef     = useRef(null)
+  const audioCtxRef     = useRef(null)
+  const fanfareRef      = useRef(null)   // decoded AudioBuffer
+  const keepAliveRef    = useRef(null)   // silent looping source
+  const timerEndedRef   = useRef(false)  // did timer end while screen was off?
 
-  // ── Load fanfare MP3 into decoded buffer ───────────────────────────────────
-  const loadFanfare = useCallback(async (ctx) => {
-    if (fanfareBufferRef.current) return
-    try {
-      const res = await fetch(FANFARE_PATH)
-      const buf = await res.arrayBuffer()
-      fanfareBufferRef.current = await ctx.decodeAudioData(buf)
-    } catch (e) {
-      console.warn('Fanfare load error:', e)
-    }
-  }, [])
-
-  // ── Init audio (must be called from user gesture) ──────────────────────────
+  // ── Load + decode fanfare (called once after first user gesture) ────────────
   const initAudio = useCallback(async () => {
-    if (audioReadyRef.current) return
-    const ctx = new AudioContext()
-    audioCtxRef.current = ctx
-    if (ctx.state === 'suspended') await ctx.resume()
-    await loadFanfare(ctx)
+    if (audioCtxRef.current) return
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)()
+      audioCtxRef.current = ctx
 
-    // Silent looping buffer keeps iOS audio session alive in background
-    const silentBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
-    const keepAlive = ctx.createBufferSource()
-    keepAlive.buffer = silentBuf
-    keepAlive.loop = true
-    keepAlive.connect(ctx.destination)
-    keepAlive.start()
-    keepAliveSrcRef.current = keepAlive
+      // Silent 1-second loop keeps iOS audio session alive in background
+      const silent = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
+      const keeper = ctx.createBufferSource()
+      keeper.buffer = silent
+      keeper.loop   = true
+      keeper.connect(ctx.destination)
+      keeper.start()
+      keepAliveRef.current = keeper
 
-    audioReadyRef.current = true
-  }, [loadFanfare])
-
-  // ── Schedule fanfare at a specific audio-clock offset (seconds from now) ──
-  const scheduleFanfare = useCallback((secondsFromNow) => {
-    const ctx = audioCtxRef.current
-    if (!ctx || !fanfareBufferRef.current) return
-    // cancel previous
-    if (scheduledSrcRef.current) {
-      try { scheduledSrcRef.current.stop() } catch {}
-    }
-    const src = ctx.createBufferSource()
-    src.buffer = fanfareBufferRef.current
-    src.connect(ctx.destination)
-    src.start(ctx.currentTime + Math.max(0, secondsFromNow))
-    scheduledSrcRef.current = src
-  }, [])
-
-  const cancelFanfare = useCallback(() => {
-    if (scheduledSrcRef.current) {
-      try { scheduledSrcRef.current.stop() } catch {}
-      scheduledSrcRef.current = null
+      // Load + decode fanfare
+      const res = await fetch(FANFARE_URL)
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const raw = await res.arrayBuffer()
+      fanfareRef.current = await ctx.decodeAudioData(raw)
+    } catch (e) {
+      console.error('Audio init failed:', e)
     }
   }, [])
 
-  const playFanfareNow = useCallback(() => {
+  // ── Play fanfare immediately ────────────────────────────────────────────────
+  const playFanfare = useCallback(async () => {
     const ctx = audioCtxRef.current
-    if (!ctx || !fanfareBufferRef.current) return
-    cancelFanfare()
-    const src = ctx.createBufferSource()
-    src.buffer = fanfareBufferRef.current
-    src.connect(ctx.destination)
-    src.start(ctx.currentTime)
-    scheduledSrcRef.current = src
-  }, [cancelFanfare])
+    if (!ctx || !fanfareRef.current) return
+    try {
+      if (ctx.state === 'suspended') await ctx.resume()
+      const src = ctx.createBufferSource()
+      src.buffer = fanfareRef.current
+      src.connect(ctx.destination)
+      src.start(0)
+    } catch (e) {
+      console.error('Playback failed:', e)
+    }
+  }, [])
 
   // ── Finish ─────────────────────────────────────────────────────────────────
-  const finish = useCallback((playSound = true) => {
+  const finish = useCallback(() => {
     clearInterval(intervalRef.current)
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
     setRunning(false)
     setFinished(true)
     setRemaining(0)
-    if (playSound) playFanfareNow()
-  }, [playFanfareNow])
+    timerEndedRef.current = false
+    playFanfare()
+  }, [playFanfare])
 
-  // ── Tick ───────────────────────────────────────────────────────────────────
+  // ── Tick: wall-clock based ─────────────────────────────────────────────────
   const tick = useCallback(() => {
     if (!endTimeRef.current) return
     const left = Math.round((endTimeRef.current - Date.now()) / 1000)
-    if (left <= 0) { finish(false); return } // fanfare already scheduled via Web Audio
+    if (left <= 0) { finish(); return }
     setRemaining(left)
   }, [finish])
 
@@ -118,18 +95,18 @@ export default function Timer({ hasNav }) {
     return () => clearInterval(intervalRef.current)
   }, [running, tick])
 
-  // ── Visibility change: screen unlock ───────────────────────────────────────
+  // ── Screen unlock: play fanfare if timer ended while screen was off ────────
   useEffect(() => {
     const onVisible = async () => {
       if (document.hidden) return
-      // Resume audio context if suspended by OS
+      // Resume audio context iOS may have suspended
       if (audioCtxRef.current?.state === 'suspended') {
         await audioCtxRef.current.resume()
       }
       if (!endTimeRef.current) return
       const left = Math.round((endTimeRef.current - Date.now()) / 1000)
       if (left <= 0) {
-        finish(true) // play fanfare now (screen was off when it finished)
+        finish()
       } else {
         setRemaining(left)
       }
@@ -138,21 +115,20 @@ export default function Timer({ hasNav }) {
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [finish])
 
-  // ── Restore state on mount ─────────────────────────────────────────────────
+  // ── Restore on PWA reopen ──────────────────────────────────────────────────
   useEffect(() => {
     const savedEnd = localStorage.getItem(LS_END)
     if (!savedEnd) return
-    const endMs   = parseInt(savedEnd)
-    const left    = Math.round((endMs - Date.now()) / 1000)
+    const endMs      = parseInt(savedEnd)
     const savedTotal = parseInt(localStorage.getItem(LS_TOTAL)   || '600')
     const savedMin   = parseInt(localStorage.getItem(LS_MINUTES) || '10')
+    const left       = Math.round((endMs - Date.now()) / 1000)
     setTotal(savedTotal)
     setMinutes(savedMin)
     if (left > 0) {
       endTimeRef.current = endMs
       setRemaining(left)
       setRunning(true)
-      // Note: fanfare needs to be rescheduled after user interaction
     } else {
       localStorage.removeItem(LS_END)
       setFinished(true)
@@ -162,28 +138,18 @@ export default function Timer({ hasNav }) {
 
   // ── Controls ───────────────────────────────────────────────────────────────
   const start = async () => {
-    await initAudio() // user gesture → unlocks audio session
-
+    await initAudio() // must be triggered by user gesture
     const secs  = finished ? total : remaining
     const endMs = Date.now() + secs * 1000
     endTimeRef.current = endMs
     localStorage.setItem(LS_END, endMs.toString())
-
-    // Schedule fanfare via audio clock — works even when screen is off
-    scheduleFanfare(secs)
-
-    if (finished) {
-      setRemaining(total)
-      setFinished(false)
-    }
+    if (finished) { setRemaining(total); setFinished(false) }
     setRunning(true)
   }
 
   const pause = () => {
-    cancelFanfare()
     if (endTimeRef.current) {
-      const left = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000))
-      setRemaining(left)
+      setRemaining(Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000)))
     }
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
@@ -191,7 +157,6 @@ export default function Timer({ hasNav }) {
   }
 
   const reset = () => {
-    cancelFanfare()
     clearInterval(intervalRef.current)
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
@@ -202,7 +167,6 @@ export default function Timer({ hasNav }) {
 
   const setDuration = (min) => {
     if (running) return
-    cancelFanfare()
     const secs = min * 60
     setMinutes(min)
     setTotal(secs)
@@ -219,7 +183,7 @@ export default function Timer({ hasNav }) {
   const dashOffset = CIRC * (1 - progress)
   const mm = String(Math.floor(remaining / 60)).padStart(2, '0')
   const ss = String(remaining % 60).padStart(2, '0')
-  const ringColor  = finished ? '#6abf7a' : '#e8956d'
+  const ringColor   = finished ? '#6abf7a' : '#e8956d'
   const bottomClass = hasNav ? 'bottom-24' : 'bottom-6'
 
   return (
