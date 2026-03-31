@@ -38,14 +38,6 @@ export default function Timer({ hasNav }) {
     wakeLockRef.current = null
   }, [])
 
-  // Re-acquire wake lock if the OS released it when screen went off
-  useEffect(() => {
-    const onVisible = () => {
-      if (!document.hidden && running) requestWakeLock()
-    }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [running, requestWakeLock])
 
   // ── Unlock audio on first user gesture ─────────────────────────────────────
   const initAudio = useCallback(() => {
@@ -102,10 +94,13 @@ export default function Timer({ hasNav }) {
     return () => clearInterval(intervalRef.current)
   }, [running, tick])
 
-  // ── Screen unlock: play fanfare if timer ended while screen was off ────────
+  // ── Resume handler: fires on screen-on, app-switch-back, or bfcache restore ─
   useEffect(() => {
-    const onVisible = () => {
+    const onResume = () => {
       if (document.hidden) return
+      // Re-acquire wake lock if timer is still running (OS releases it on screen-off)
+      if (endTimeRef.current) requestWakeLock()
+      // Check timer state
       if (!endTimeRef.current) return
       const left = Math.round((endTimeRef.current - Date.now()) / 1000)
       if (left <= 0) {
@@ -114,9 +109,15 @@ export default function Timer({ hasNav }) {
         setRemaining(left)
       }
     }
-    document.addEventListener('visibilitychange', onVisible)
-    return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [finish])
+    document.addEventListener('visibilitychange', onResume)
+    window.addEventListener('pageshow', onResume)       // iOS bfcache restore
+    window.addEventListener('focus', onResume)          // fallback
+    return () => {
+      document.removeEventListener('visibilitychange', onResume)
+      window.removeEventListener('pageshow', onResume)
+      window.removeEventListener('focus', onResume)
+    }
+  }, [finish, requestWakeLock])
 
   // ── Restore on PWA reopen ──────────────────────────────────────────────────
   useEffect(() => {
