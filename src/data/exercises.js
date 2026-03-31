@@ -13,7 +13,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Ganzkörper'],
     description: 'Auf den Boden, Liegestütz, Füße zur Brust, Sprung mit Armstreckung über Kopf.',
-    gif: '',
+    gif: 'burpee.gif',
   },
   {
     id: 'pull-up',
