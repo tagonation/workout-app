@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useWorkouts, useCustomGifs } from './hooks/useWorkouts'
 import BottomNav from './components/BottomNav'
+import Timer from './components/Timer'
 import WorkoutsView from './components/WorkoutsView'
 import CatalogView from './components/CatalogView'
 import CreateWorkoutView from './components/CreateWorkoutView'
@@ -65,6 +66,7 @@ export default function App() {
           onCreate={() => go('create')}
         />
       )}
+      <Timer hasNav={view === 'workouts' || view === 'catalog'} />
     </div>
   )
 }
