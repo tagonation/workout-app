@@ -8,7 +8,7 @@ function fmtDate(iso) {
   return new Intl.DateTimeFormat('de-DE', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).format(d)
 }
 
-export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onDelete }) {
+export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onDelete, onEdit }) {
   const [logMode, setLogMode] = useState(false)
   const [score, setScore] = useState(workout.result?.score || '')
   const [rxd, setRxd] = useState(workout.result?.rxd ?? false)
@@ -37,17 +37,25 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        <button
-          onClick={() => setConfirmDelete(true)}
-          className="text-gray-600 active:text-red-400"
-        >
+        <div className="flex items-center gap-4">
+          <button onClick={onEdit} className="text-gray-400 active:text-orange-400">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
+              <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+          </button>
+          <button
+            onClick={() => setConfirmDelete(true)}
+            className="text-gray-600 active:text-red-400"
+          >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <polyline points="3 6 5 6 21 6"/>
             <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
             <path d="M10 11v6M14 11v6"/>
             <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
           </svg>
-        </button>
+          </button>
+        </div>
       </div>
 
       {/* Title */}

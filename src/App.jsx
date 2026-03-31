@@ -46,6 +46,14 @@ export default function App() {
             onBack={() => go('workouts')}
             onUpdate={(id, u) => updateWorkout(id, u)}
             onDelete={(id) => { deleteWorkout(id); go('workouts') }}
+            onEdit={() => go('edit', selectedWorkoutId)}
+          />
+        )}
+        {view === 'edit' && selectedWorkout && (
+          <CreateWorkoutView
+            initialData={selectedWorkout}
+            onSave={(w) => { updateWorkout(selectedWorkout.id, w); go('detail', selectedWorkout.id) }}
+            onCancel={() => go('detail', selectedWorkoutId)}
           />
         )}
       </div>

@@ -12,8 +12,16 @@ const EMPTY = {
   result: null,
 }
 
-export default function CreateWorkoutView({ onSave, onCancel }) {
-  const [form, setForm] = useState(EMPTY)
+export default function CreateWorkoutView({ onSave, onCancel, initialData }) {
+  const [form, setForm] = useState(() => initialData ? {
+    name: initialData.name || '',
+    date: initialData.date || new Date().toISOString().slice(0, 10),
+    type: initialData.type || 'for-time',
+    timeCap: initialData.timeCap || '',
+    rounds: initialData.rounds || '',
+    exercises: initialData.exercises || [],
+    notes: initialData.notes || '',
+  } : EMPTY)
   const [showExPicker, setShowExPicker] = useState(false)
   const [exSearch, setExSearch] = useState('')
 
@@ -80,7 +88,7 @@ export default function CreateWorkoutView({ onSave, onCancel }) {
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
-        <h1 className="text-lg font-bold">Workout erstellen</h1>
+        <h1 className="text-lg font-bold">{initialData ? 'Workout bearbeiten' : 'Workout erstellen'}</h1>
         <button
           onClick={handleSave}
           className="text-orange-400 font-semibold text-sm active:opacity-70"
