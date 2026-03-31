@@ -28,17 +28,22 @@ export default function Timer({ hasNav }) {
     const audio = new Audio(FANFARE_URL)
     audio.preload = 'auto'
     audioRef.current = audio
-    // Play + immediately pause to unlock the element for future non-gesture calls
+    // Unlock silently: volume 0 so the fanfare isn't heard on Start
+    audio.volume = 0
     audio.play().then(() => {
       audio.pause()
       audio.currentTime = 0
-    }).catch(() => {})
+      audio.volume = 1
+    }).catch(() => {
+      audio.volume = 1
+    })
   }, [])
 
   // ── Play fanfare ────────────────────────────────────────────────────────────
   const playFanfare = useCallback(() => {
     const audio = audioRef.current
     if (!audio) return
+    audio.volume = 1
     audio.currentTime = 0
     audio.play().catch(e => console.error('Playback failed:', e))
   }, [])
