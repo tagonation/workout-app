@@ -49,7 +49,18 @@ export default function CreateWorkoutView({ onSave, onCancel, initialData }) {
     if (i === form.exercises.length - 1) return
     const arr = [...form.exercises]
     ;[arr[i], arr[i + 1]] = [arr[i + 1], arr[i]]
+    // keep superset links consistent after swap
+    const nextSuperset = arr[i].superset
+    arr[i] = { ...arr[i], superset: arr[i + 1].superset }
+    arr[i + 1] = { ...arr[i + 1], superset: nextSuperset }
     set('exercises', arr)
+  }
+
+  const toggleSuperset = (i) => {
+    // i is the index of the second exercise in the pair
+    set('exercises', form.exercises.map((e, idx) =>
+      idx === i ? { ...e, superset: !e.superset } : e
+    ))
   }
 
   const handleSave = () => {
@@ -162,38 +173,71 @@ export default function CreateWorkoutView({ onSave, onCancel, initialData }) {
         {/* Exercises */}
         <Field label="Übungen">
           {form.exercises.length > 0 && (
-            <div className="space-y-2 mb-2">
-              {form.exercises.map((ex, i) => (
-                <div key={i} className="flex items-start gap-2 bg-white border border-[#ede8e1] rounded-xl px-3 py-2.5">
-                  <div className="flex flex-col gap-0.5 pt-0.5">
-                    <button onClick={() => moveUp(i)} className="text-[#bfb4a8] active:text-[#6b5d52]">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="18 15 12 9 6 15"/>
-                      </svg>
-                    </button>
-                    <button onClick={() => moveDown(i)} className="text-[#bfb4a8] active:text-[#6b5d52]">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </button>
+            <div className="mb-2">
+              {form.exercises.map((ex, i) => {
+                const linkedAbove = ex.superset === true
+                const linkedBelow = form.exercises[i + 1]?.superset === true
+                const inSuperset = linkedAbove || linkedBelow
+
+                return (
+                  <div key={i}>
+                    {/* Exercise card */}
+                    <div className={`flex items-start gap-2 bg-white px-3 py-2.5 border border-[#ede8e1] ${
+                      linkedAbove && linkedBelow ? 'rounded-none border-y-0 border-l-[3px] border-l-[#e8956d]' :
+                      linkedAbove            ? 'rounded-b-xl border-t-0 border-l-[3px] border-l-[#e8956d]' :
+                      linkedBelow            ? 'rounded-t-xl border-b-0 border-l-[3px] border-l-[#e8956d]' :
+                                               'rounded-xl'
+                    }`}>
+                      <div className="flex flex-col gap-0.5 pt-0.5">
+                        <button onClick={() => moveUp(i)} className="text-[#bfb4a8] active:text-[#6b5d52]">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="18 15 12 9 6 15"/>
+                          </svg>
+                        </button>
+                        <button onClick={() => moveDown(i)} className="text-[#bfb4a8] active:text-[#6b5d52]">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="6 9 12 15 18 9"/>
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-[#1a1511]">{ex.exerciseName}</p>
+                        <input
+                          type="text"
+                          placeholder='z.B. "21-15-9" oder "5×3 @ 80kg"'
+                          value={ex.detail}
+                          onChange={e => updateExDetail(i, e.target.value)}
+                          className="w-full text-xs text-[#8c7d6e] placeholder-[#bfb4a8] mt-1 bg-transparent border-b border-[#ede8e1] pb-0.5"
+                        />
+                      </div>
+                      <button onClick={() => removeExercise(i)} className="text-[#bfb4a8] active:text-red-400 pt-1">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    </div>
+
+                    {/* Superset connector between this and next exercise */}
+                    {i < form.exercises.length - 1 && (
+                      <div className="flex items-center gap-2 h-8 pl-1">
+                        {/* Vertical line */}
+                        <div className={`w-[3px] h-full rounded-full ml-[1px] ${linkedBelow ? 'bg-[#e8956d]' : 'bg-transparent'}`} />
+                        {/* Toggle button */}
+                        <button
+                          onClick={() => toggleSuperset(i + 1)}
+                          className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-colors ${
+                            linkedBelow
+                              ? 'bg-orange-50 text-[#e8956d] border-orange-200'
+                              : 'bg-white text-[#bfb4a8] border-dashed border-[#d4c4b8]'
+                          }`}
+                        >
+                          {linkedBelow ? 'Superset ✕' : '+ Superset'}
+                        </button>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1a1511]">{ex.exerciseName}</p>
-                    <input
-                      type="text"
-                      placeholder='z.B. "21-15-9" oder "5×3 @ 80kg"'
-                      value={ex.detail}
-                      onChange={e => updateExDetail(i, e.target.value)}
-                      className="w-full text-xs text-[#8c7d6e] placeholder-[#bfb4a8] mt-1 bg-transparent border-b border-[#ede8e1] pb-0.5"
-                    />
-                  </div>
-                  <button onClick={() => removeExercise(i)} className="text-[#bfb4a8] active:text-red-400 pt-1">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                    </svg>
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
           <button

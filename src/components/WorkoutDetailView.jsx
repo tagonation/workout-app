@@ -73,35 +73,54 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
       {workout.exercises?.length > 0 && (
         <div className="mb-5">
           <p className="text-xs text-[#a89888] font-medium uppercase tracking-wider mb-3">Übungen</p>
-          <div className="space-y-2">
+          <div>
             {workout.exercises.map((ex, i) => {
               const exData = getExerciseData(ex.exerciseId)
               const resolvedGif = gifs?.[ex.exerciseId] || gifUrl(exData?.gif) || ''
+              const linkedAbove = ex.superset === true
+              const linkedBelow = workout.exercises[i + 1]?.superset === true
 
               return (
-                <div key={i} className="flex items-center gap-3 bg-white border border-[#ede8e1] rounded-xl px-4 py-3 shadow-sm">
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-[#1a1511]">{ex.exerciseName}</p>
-                    {ex.detail && (
-                      <p className="text-xs text-[#e8956d] mt-0.5">{ex.detail}</p>
+                <div key={i}>
+                  <div className={`flex items-center gap-3 bg-white border border-[#ede8e1] px-4 py-3 shadow-sm ${
+                    linkedAbove && linkedBelow ? 'rounded-none border-y-0 border-l-[3px] border-l-[#e8956d]' :
+                    linkedAbove            ? 'rounded-b-xl border-t-0 border-l-[3px] border-l-[#e8956d]' :
+                    linkedBelow            ? 'rounded-t-xl border-b-0 border-l-[3px] border-l-[#e8956d]' :
+                                             'rounded-xl'
+                  }`}>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#1a1511]">{ex.exerciseName}</p>
+                      {ex.detail && (
+                        <p className="text-xs text-[#e8956d] mt-0.5">{ex.detail}</p>
+                      )}
+                    </div>
+                    {exData && (
+                      <button
+                        onClick={() => setDemoExercise(exData)}
+                        className="flex items-center gap-1.5 text-xs text-[#a89888] active:text-[#6b5d52]"
+                      >
+                        {resolvedGif ? (
+                          <img src={resolvedGif} alt="" className="w-9 h-9 rounded-lg object-cover" />
+                        ) : (
+                          <>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
+                            </svg>
+                            Demo
+                          </>
+                        )}
+                      </button>
                     )}
                   </div>
-                  {exData && (
-                    <button
-                      onClick={() => setDemoExercise(exData)}
-                      className="flex items-center gap-1.5 text-xs text-[#a89888] active:text-[#6b5d52]"
-                    >
-                      {resolvedGif ? (
-                        <img src={resolvedGif} alt="" className="w-9 h-9 rounded-lg object-cover" />
-                      ) : (
-                        <>
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>
-                          </svg>
-                          Demo
-                        </>
-                      )}
-                    </button>
+
+                  {/* Superset connector */}
+                  {linkedBelow && (
+                    <div className="flex items-center gap-2 h-7 pl-1">
+                      <div className="w-[3px] h-full bg-[#e8956d] rounded-full ml-[1px]" />
+                      <span className="text-xs font-semibold text-[#e8956d] bg-orange-50 px-2.5 py-0.5 rounded-full border border-orange-200">
+                        Superset
+                      </span>
+                    </div>
                   )}
                 </div>
               )
