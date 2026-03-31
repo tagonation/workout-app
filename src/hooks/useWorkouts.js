@@ -49,7 +49,11 @@ export function useWorkouts() {
     })
   }, [])
 
-  return { workouts, addWorkout, updateWorkout, deleteWorkout }
+  const sorted = [...workouts].sort((a, b) =>
+    (a.name || '').localeCompare(b.name || '', 'de', { sensitivity: 'base' })
+  )
+
+  return { workouts: sorted, addWorkout, updateWorkout, deleteWorkout }
 }
 
 export function useCustomGifs() {
