@@ -1,7 +1,7 @@
 export default function BottomNav({ active, onChange, onCreate }) {
   return (
     <nav className="fixed bottom-0 inset-x-0 z-40" style={{ maxWidth: 480, margin: '0 auto', left: 0, right: 0 }}>
-      <div className="bg-[#1a1a1a] border-t border-[#2a2a2a] flex items-center h-16 px-4"
+      <div className="bg-white border-t border-[#ede8e1] flex items-center h-16 px-4"
            style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
         <NavBtn
           label="Workouts"
@@ -17,7 +17,7 @@ export default function BottomNav({ active, onChange, onCreate }) {
 
         <button
           onClick={onCreate}
-          className="mx-auto w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center shadow-lg active:scale-95 transition-transform"
+          className="mx-auto w-12 h-12 rounded-full bg-[#e8956d] flex items-center justify-center shadow-md active:scale-95 transition-transform"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5">
             <line x1="12" y1="5" x2="12" y2="19"/>
@@ -46,7 +46,7 @@ function NavBtn({ label, active, onClick, icon }) {
     <button
       onClick={onClick}
       className={`flex-1 flex flex-col items-center gap-1 py-1 text-xs transition-colors ${
-        active ? 'text-orange-400' : 'text-gray-500'
+        active ? 'text-[#e8956d]' : 'text-[#a89888]'
       }`}
     >
       {icon}

@@ -17,12 +17,10 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
   const [demoExercise, setDemoExercise] = useState(null)
 
   const typeInfo = WORKOUT_TYPES.find(t => t.id === workout.type)
-  const typeColor = WORKOUT_TYPE_COLORS[workout.type] || 'text-gray-400'
+  const typeColor = WORKOUT_TYPE_COLORS[workout.type] || 'text-[#a89888]'
 
   const saveResult = () => {
-    onUpdate(workout.id, {
-      result: { score: score.trim(), rxd, note: resultNote.trim() }
-    })
+    onUpdate(workout.id, { result: { score: score.trim(), rxd, note: resultNote.trim() } })
     setLogMode(false)
   }
 
@@ -32,23 +30,23 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
     <div className="px-4 pt-6 pb-6">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-6">
-        <button onClick={onBack} className="w-11 h-11 flex items-center justify-center rounded-full bg-[#1a1a1a] text-gray-400 active:opacity-70">
+        <button onClick={onBack} className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-[#ede8e1] text-[#6b5d52] active:opacity-70">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </button>
         <div className="flex items-center gap-2">
-          <button onClick={onEdit} className="w-11 h-11 flex items-center justify-center rounded-full bg-[#1a1a1a] text-gray-400 active:text-orange-400">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <button onClick={onEdit} className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-[#ede8e1] text-[#6b5d52] active:text-[#e8956d]">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
               <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
             </svg>
           </button>
           <button
             onClick={() => setConfirmDelete(true)}
-            className="w-11 h-11 flex items-center justify-center rounded-full bg-[#1a1a1a] text-gray-600 active:text-red-400"
+            className="w-11 h-11 flex items-center justify-center rounded-full bg-white border border-[#ede8e1] text-[#a89888] active:text-red-400"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <polyline points="3 6 5 6 21 6"/>
               <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
               <path d="M10 11v6M14 11v6"/>
@@ -65,37 +63,36 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
           {workout.timeCap && ` · ${workout.timeCap} min`}
           {workout.rounds && ` · ${workout.rounds} Runden`}
         </span>
-        <h1 className="text-2xl font-bold mt-1">
+        <h1 className="text-2xl font-bold mt-1 text-[#1a1511]">
           {workout.name || typeInfo?.label || 'Workout'}
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">{fmtDate(workout.date || workout.createdAt)}</p>
+        <p className="text-sm text-[#a89888] mt-0.5">{fmtDate(workout.date || workout.createdAt)}</p>
       </div>
 
       {/* Exercises */}
       {workout.exercises?.length > 0 && (
         <div className="mb-5">
-          <p className="text-xs text-gray-600 font-medium uppercase tracking-wider mb-3">Übungen</p>
+          <p className="text-xs text-[#a89888] font-medium uppercase tracking-wider mb-3">Übungen</p>
           <div className="space-y-2">
             {workout.exercises.map((ex, i) => {
               const exData = getExerciseData(ex.exerciseId)
               const resolvedGif = gifs?.[ex.exerciseId] || gifUrl(exData?.gif) || ''
-              const catColors = exData ? CATEGORY_COLORS[exData.category] : null
 
               return (
-                <div key={i} className="flex items-center gap-3 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-3">
+                <div key={i} className="flex items-center gap-3 bg-white border border-[#ede8e1] rounded-xl px-4 py-3 shadow-sm">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">{ex.exerciseName}</p>
+                    <p className="text-sm font-medium text-[#1a1511]">{ex.exerciseName}</p>
                     {ex.detail && (
-                      <p className="text-xs text-orange-300 mt-0.5">{ex.detail}</p>
+                      <p className="text-xs text-[#e8956d] mt-0.5">{ex.detail}</p>
                     )}
                   </div>
                   {exData && (
                     <button
                       onClick={() => setDemoExercise(exData)}
-                      className="flex items-center gap-1.5 text-xs text-gray-500 active:text-gray-300"
+                      className="flex items-center gap-1.5 text-xs text-[#a89888] active:text-[#6b5d52]"
                     >
                       {resolvedGif ? (
-                        <img src={resolvedGif} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                        <img src={resolvedGif} alt="" className="w-9 h-9 rounded-lg object-cover" />
                       ) : (
                         <>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -115,34 +112,34 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
 
       {/* Notes */}
       {workout.notes && (
-        <div className="mb-5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-3">
-          <p className="text-xs text-gray-600 font-medium uppercase tracking-wider mb-1">Notizen</p>
-          <p className="text-sm text-gray-300 whitespace-pre-wrap">{workout.notes}</p>
+        <div className="mb-5 bg-white border border-[#ede8e1] rounded-xl px-4 py-3 shadow-sm">
+          <p className="text-xs text-[#a89888] font-medium uppercase tracking-wider mb-1">Notizen</p>
+          <p className="text-sm text-[#6b5d52] whitespace-pre-wrap">{workout.notes}</p>
         </div>
       )}
 
       {/* Result */}
       {workout.result?.score ? (
-        <div className="mb-5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl px-4 py-4">
+        <div className="mb-5 bg-white border border-[#ede8e1] rounded-xl px-4 py-4 shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-xs text-gray-600 font-medium uppercase tracking-wider">Ergebnis</p>
-            <button onClick={() => setLogMode(true)} className="text-xs text-orange-400">Ändern</button>
+            <p className="text-xs text-[#a89888] font-medium uppercase tracking-wider">Ergebnis</p>
+            <button onClick={() => setLogMode(true)} className="text-xs text-[#e8956d]">Ändern</button>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-orange-400">{workout.result.score}</span>
+            <span className="text-2xl font-bold text-[#e8956d]">{workout.result.score}</span>
             {workout.result.rxd && (
-              <span className="text-sm bg-green-500/20 text-green-300 px-2 py-0.5 rounded-full font-medium">RX</span>
+              <span className="text-sm bg-[#dcf0e0] text-[#3d8c52] px-2 py-0.5 rounded-full font-medium">RX</span>
             )}
           </div>
           {workout.result.note && (
-            <p className="text-sm text-gray-500 mt-1">{workout.result.note}</p>
+            <p className="text-sm text-[#a89888] mt-1">{workout.result.note}</p>
           )}
         </div>
       ) : (
         !logMode && (
           <button
             onClick={() => setLogMode(true)}
-            className="w-full bg-orange-500 text-white font-semibold py-3.5 rounded-2xl text-sm active:opacity-90 transition-opacity"
+            className="w-full bg-[#e8956d] text-white font-semibold py-3.5 rounded-2xl text-sm active:opacity-90 transition-opacity shadow-sm"
           >
             Ergebnis eintragen
           </button>
@@ -151,47 +148,47 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
 
       {/* Log result form */}
       {logMode && (
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl px-4 py-4 space-y-3">
-          <p className="text-sm font-semibold">Ergebnis eintragen</p>
+        <div className="bg-white border border-[#ede8e1] rounded-2xl px-4 py-4 space-y-3 shadow-sm">
+          <p className="text-sm font-semibold text-[#1a1511]">Ergebnis eintragen</p>
 
           <div>
-            <label className="text-xs text-gray-600 mb-1 block">Score / Zeit / Runden+Reps</label>
+            <label className="text-xs text-[#a89888] mb-1 block">Score / Zeit / Runden+Reps</label>
             <input
               autoFocus
               type="text"
               placeholder='z.B. "12:34", "5+3 Reps", "120 kg"'
               value={score}
               onChange={e => setScore(e.target.value)}
-              className="w-full bg-[#111] border border-[#333] rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600"
+              className="w-full bg-[#f5f0ea] border border-[#ede8e1] rounded-xl px-4 py-2.5 text-sm text-[#1a1511] placeholder-[#bfb4a8]"
             />
           </div>
 
           <label className="flex items-center gap-3 cursor-pointer">
             <div
               onClick={() => setRxd(!rxd)}
-              className={`w-10 h-6 rounded-full transition-colors relative ${rxd ? 'bg-green-500' : 'bg-[#333]'}`}
+              className={`w-10 h-6 rounded-full transition-colors relative ${rxd ? 'bg-[#6abf7a]' : 'bg-[#ede8e1]'}`}
             >
-              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${rxd ? 'translate-x-5' : 'translate-x-1'}`} />
+              <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform shadow-sm ${rxd ? 'translate-x-5' : 'translate-x-1'}`} />
             </div>
-            <span className="text-sm">RX (ohne Skalierung)</span>
+            <span className="text-sm text-[#1a1511]">RX (ohne Skalierung)</span>
           </label>
 
           <div>
-            <label className="text-xs text-gray-600 mb-1 block">Notiz (optional)</label>
+            <label className="text-xs text-[#a89888] mb-1 block">Notiz (optional)</label>
             <textarea
               rows={2}
               placeholder="Wie lief es? Scaling, Gefühl…"
               value={resultNote}
               onChange={e => setResultNote(e.target.value)}
-              className="w-full bg-[#111] border border-[#333] rounded-xl px-4 py-2.5 text-sm text-white placeholder-gray-600 resize-none"
+              className="w-full bg-[#f5f0ea] border border-[#ede8e1] rounded-xl px-4 py-2.5 text-sm text-[#1a1511] placeholder-[#bfb4a8] resize-none"
             />
           </div>
 
           <div className="flex gap-2 pt-1">
-            <button onClick={saveResult} className="flex-1 bg-orange-500 text-white rounded-xl py-2.5 text-sm font-semibold">
+            <button onClick={saveResult} className="flex-1 bg-[#e8956d] text-white rounded-xl py-2.5 text-sm font-semibold">
               Speichern
             </button>
-            <button onClick={() => setLogMode(false)} className="flex-1 bg-[#2a2a2a] text-gray-300 rounded-xl py-2.5 text-sm">
+            <button onClick={() => setLogMode(false)} className="flex-1 bg-[#f5f0ea] text-[#6b5d52] rounded-xl py-2.5 text-sm">
               Abbrechen
             </button>
           </div>
@@ -200,15 +197,15 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
 
       {/* Delete confirm */}
       {confirmDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-6">
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-2xl p-6 w-full max-w-sm text-center">
-            <p className="font-bold text-lg mb-1">Workout löschen?</p>
-            <p className="text-sm text-gray-500 mb-5">Diese Aktion kann nicht rückgängig gemacht werden.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 backdrop-blur-sm px-6">
+          <div className="bg-white border border-[#ede8e1] rounded-2xl p-6 w-full max-w-sm text-center shadow-xl">
+            <p className="font-bold text-lg text-[#1a1511] mb-1">Workout löschen?</p>
+            <p className="text-sm text-[#a89888] mb-5">Diese Aktion kann nicht rückgängig gemacht werden.</p>
             <div className="flex gap-3">
-              <button onClick={() => setConfirmDelete(false)} className="flex-1 bg-[#2a2a2a] text-gray-300 rounded-xl py-3 text-sm">
+              <button onClick={() => setConfirmDelete(false)} className="flex-1 bg-[#f5f0ea] text-[#6b5d52] rounded-xl py-3 text-sm">
                 Abbrechen
               </button>
-              <button onClick={() => onDelete(workout.id)} className="flex-1 bg-red-500 text-white rounded-xl py-3 text-sm font-semibold">
+              <button onClick={() => onDelete(workout.id)} className="flex-1 bg-red-400 text-white rounded-xl py-3 text-sm font-semibold">
                 Löschen
               </button>
             </div>
@@ -216,7 +213,6 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
         </div>
       )}
 
-      {/* Demo modal */}
       {demoExercise && (
         <ExerciseDemoModal
           exercise={demoExercise}

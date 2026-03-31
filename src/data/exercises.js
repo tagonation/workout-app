@@ -648,13 +648,13 @@ export const CATEGORIES = [
 ]
 
 export const CATEGORY_COLORS = {
-  'Gymnastics':      { bg: 'bg-purple-900/40', text: 'text-purple-300', border: 'border-purple-800' },
-  'Olympic Lifting': { bg: 'bg-yellow-900/40', text: 'text-yellow-300', border: 'border-yellow-800' },
-  'Powerlifting':    { bg: 'bg-red-900/40',    text: 'text-red-300',    border: 'border-red-800'    },
-  'Kettlebell':      { bg: 'bg-green-900/40',  text: 'text-green-300',  border: 'border-green-800'  },
-  'Monostructural':  { bg: 'bg-blue-900/40',   text: 'text-blue-300',   border: 'border-blue-800'   },
-  'Dumbbell':        { bg: 'bg-orange-900/40', text: 'text-orange-300', border: 'border-orange-800' },
-  'Bodyweight':      { bg: 'bg-gray-800/60',   text: 'text-gray-300',   border: 'border-gray-700'   },
+  'Gymnastics':      { bg: 'bg-purple-50',  text: 'text-purple-600', border: 'border-purple-200' },
+  'Olympic Lifting': { bg: 'bg-amber-50',   text: 'text-amber-600',  border: 'border-amber-200'  },
+  'Powerlifting':    { bg: 'bg-rose-50',    text: 'text-rose-600',   border: 'border-rose-200'   },
+  'Kettlebell':      { bg: 'bg-green-50',   text: 'text-green-600',  border: 'border-green-200'  },
+  'Monostructural':  { bg: 'bg-sky-50',     text: 'text-sky-600',    border: 'border-sky-200'    },
+  'Dumbbell':        { bg: 'bg-orange-50',  text: 'text-orange-600', border: 'border-orange-200' },
+  'Bodyweight':      { bg: 'bg-stone-50',   text: 'text-stone-600',  border: 'border-stone-200'  },
 }
 
 export const WORKOUT_TYPES = [
@@ -670,13 +670,13 @@ export const WORKOUT_TYPES = [
 ]
 
 export const WORKOUT_TYPE_COLORS = {
-  'for-time': 'text-red-400',
-  'amrap':    'text-orange-400',
-  'emom':     'text-yellow-400',
-  'rft':      'text-pink-400',
-  'tabata':   'text-purple-400',
-  'strength': 'text-blue-400',
-  'open':     'text-teal-400',
-  'chipper':  'text-green-400',
-  'custom':   'text-gray-400',
+  'for-time': 'text-rose-500',
+  'amrap':    'text-orange-500',
+  'emom':     'text-amber-500',
+  'rft':      'text-pink-500',
+  'tabata':   'text-purple-500',
+  'strength': 'text-blue-500',
+  'open':     'text-teal-500',
+  'chipper':  'text-green-500',
+  'custom':   'text-stone-400',
 }
