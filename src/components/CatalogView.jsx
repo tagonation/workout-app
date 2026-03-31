@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { EXERCISES, CATEGORIES, CATEGORY_COLORS } from '../data/exercises'
+import { EXERCISES, CATEGORIES, CATEGORY_COLORS, gifUrl } from '../data/exercises'
 import ExerciseDemoModal from './ExerciseDemoModal'
 
 export default function CatalogView({ gifs, setGifUrl }) {
@@ -68,7 +68,7 @@ export default function CatalogView({ gifs, setGifUrl }) {
               <ExerciseRow
                 key={ex.id}
                 exercise={ex}
-                gifUrl={gifs[ex.id] || ex.gifUrl}
+                gifUrl={gifs[ex.id] || gifUrl(ex.gif)}
                 onClick={() => setSelected(ex)}
               />
             ))}
@@ -85,7 +85,7 @@ export default function CatalogView({ gifs, setGifUrl }) {
       {selected && (
         <ExerciseDemoModal
           exercise={selected}
-          gifUrl={gifs[selected.id] || selected.gifUrl}
+          gifUrl={gifs[selected.id] || gifUrl(selected.gif)}
           onSetGifUrl={(url) => setGifUrl(selected.id, url)}
           onClose={() => setSelected(null)}
         />

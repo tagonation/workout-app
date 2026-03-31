@@ -1,5 +1,9 @@
-// gifUrl: leer = kein Demo hinterlegt. User kann per "Demo bearbeiten" eine GIF-URL eintragen.
-// Vorausgefüllt mit zuverlässigen, permanenten Giphy-GIF-Links für die häufigsten Übungen.
+// Lokale GIF-Pfade relativ zum public-Ordner.
+// gifUrl() fügt BASE_URL automatisch hinzu (funktioniert lokal + auf GitHub Pages).
+export function gifUrl(filename) {
+  if (!filename) return ''
+  return `${import.meta.env.BASE_URL}assets/${filename}`
+}
 
 export const EXERCISES = [
   // ── Gymnastics ──────────────────────────────────────────────────────────────
@@ -9,7 +13,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Ganzkörper'],
     description: 'Auf den Boden, Liegestütz, Füße zur Brust, Sprung mit Armstreckung über Kopf.',
-    gifUrl: 'https://media.giphy.com/media/l0HlBO7eyXzSZkJri/giphy.gif',
+    gif: '',
   },
   {
     id: 'pull-up',
@@ -17,7 +21,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Rücken', 'Bizeps'],
     description: 'Hängen an der Stange, Kinn über die Stange ziehen, Arme strecken.',
-    gifUrl: 'https://media.giphy.com/media/l3vRlT2k3DSsKMOk0/giphy.gif',
+    gif: 'pull-up.gif',
   },
   {
     id: 'chest-to-bar',
@@ -25,7 +29,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Rücken', 'Bizeps'],
     description: 'Wie Pull-up, Brust berührt die Stange.',
-    gifUrl: '',
+    gif: 'chest_to_bar_pull_up.gif',
   },
   {
     id: 'muscle-up',
@@ -33,7 +37,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Rücken', 'Trizeps', 'Brust'],
     description: 'Pull-up in einen Dip an Stange oder Ringen, volle Armstreckung oben.',
-    gifUrl: '',
+    gif: 'muscle_up.gif',
   },
   {
     id: 'ring-muscle-up',
@@ -41,7 +45,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Rücken', 'Trizeps', 'Brust'],
     description: 'Muscle-up an den Ringen – instabiler und athletischer.',
-    gifUrl: '',
+    gif: 'ring_muscle_up.gif',
   },
   {
     id: 'hspu',
@@ -49,7 +53,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Schultern', 'Trizeps', 'Core'],
     description: 'Handstand an der Wand, Kopf bis zum Boden absenken, zurückdrücken.',
-    gifUrl: '',
+    gif: 'handstand_push_up.gif',
   },
   {
     id: 'handstand-walk',
@@ -57,7 +61,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Schultern', 'Core'],
     description: 'Im Handstand auf Händen laufen.',
-    gifUrl: '',
+    gif: 'hand_stand_walk.gif',
   },
   {
     id: 'toes-to-bar',
@@ -65,7 +69,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Core', 'Hüftbeuger'],
     description: 'Hängen an der Stange, Zehen bis zur Stange heben.',
-    gifUrl: 'https://media.giphy.com/media/l3vR6aFkuEBMJrXmE/giphy.gif',
+    gif: 'toes_to_bar.gif',
   },
   {
     id: 'knee-to-elbow',
@@ -73,7 +77,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Core'],
     description: 'Hängen an der Stange, Knie zu den Ellenbogen heben.',
-    gifUrl: '',
+    gif: 'knees_to_elbow.gif',
   },
   {
     id: 'ring-dip',
@@ -81,7 +85,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Trizeps', 'Brust'],
     description: 'Stütz auf Ringen, absenken bis 90°, zurückdrücken.',
-    gifUrl: '',
+    gif: 'Ring_dip.gif',
   },
   {
     id: 'bar-dip',
@@ -89,7 +93,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Trizeps', 'Brust'],
     description: 'Stütz an parallelen Stangen, Dip bis 90°.',
-    gifUrl: '',
+    gif: 'bar_dip.gif',
   },
   {
     id: 'rope-climb',
@@ -97,7 +101,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Rücken', 'Bizeps', 'Core'],
     description: 'Klettern am Seil mit Fußtechnik (J-hook oder S-wrap).',
-    gifUrl: '',
+    gif: 'rope_climb.gif',
   },
   {
     id: 'box-jump',
@@ -105,7 +109,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Beine', 'Gesäß'],
     description: 'Auf eine Box springen, Hüften oben vollständig strecken, runtersteigen.',
-    gifUrl: 'https://media.giphy.com/media/xT1XGWTbbpW2OaRMiA/giphy.gif',
+    gif: 'box_jump.gif',
   },
   {
     id: 'box-jump-over',
@@ -113,7 +117,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Beine', 'Gesäß'],
     description: 'Über die Box springen (nicht drauf) – auf der anderen Seite landen.',
-    gifUrl: '',
+    gif: 'box_jump_over.gif',
   },
   {
     id: 'double-under',
@@ -121,7 +125,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Waden', 'Schultern'],
     description: 'Springseil zweimal pro Sprung unter den Füßen durchdrehen.',
-    gifUrl: 'https://media.giphy.com/media/l2SpZkQ0XT1XtKus0/giphy.gif',
+    gif: 'double_unders.gif',
   },
   {
     id: 'single-under',
@@ -129,7 +133,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Waden'],
     description: 'Normales Springseil, einmal pro Sprung.',
-    gifUrl: '',
+    gif: 'Single_Unders.gif',
   },
   {
     id: 'wall-walk',
@@ -137,7 +141,7 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Schultern', 'Core'],
     description: 'Liegestütz-Position, an der Wand in Handstand-Position hochlaufen.',
-    gifUrl: '',
+    gif: 'wall_walk.gif',
   },
   {
     id: 'l-sit',
@@ -145,7 +149,15 @@ export const EXERCISES = [
     category: 'Gymnastics',
     muscles: ['Core', 'Trizeps'],
     description: 'Stütz auf Ringen/Stangen, Beine waagerecht halten.',
-    gifUrl: '',
+    gif: 'L_sit.gif',
+  },
+  {
+    id: 'wall-ball',
+    name: 'Wall Ball',
+    category: 'Gymnastics',
+    muscles: ['Ganzkörper'],
+    description: 'Aus der tiefen Kniebeugeposition Medizinball auf Ziel an der Wand werfen.',
+    gif: 'wall_ball.gif',
   },
 
   // ── Olympic Lifting ──────────────────────────────────────────────────────────
@@ -155,7 +167,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Langhantel vom Boden in einer Bewegung über Kopf heben.',
-    gifUrl: '',
+    gif: 'snatch.gif',
   },
   {
     id: 'hang-power-snatch',
@@ -163,7 +175,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Snatch aus der Hängeposition über den Knien, ohne volles Untersitzen.',
-    gifUrl: '',
+    gif: 'hang_power_snatch.gif',
   },
   {
     id: 'clean',
@@ -171,7 +183,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Langhantel vom Boden in die Frontrackposition ohne volles Untersitzen.',
-    gifUrl: '',
+    gif: 'power_clean.gif',
   },
   {
     id: 'squat-clean',
@@ -179,7 +191,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Clean mit vollem Untersitzen in der Frontkniebeugeposition.',
-    gifUrl: '',
+    gif: 'squat clean.gif',
   },
   {
     id: 'hang-power-clean',
@@ -187,7 +199,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Power Clean aus der Hängeposition über den Knien.',
-    gifUrl: '',
+    gif: 'hang_power_clean.gif',
   },
   {
     id: 'clean-jerk',
@@ -195,7 +207,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Clean in Front-Rack, dann Jerk über Kopf.',
-    gifUrl: '',
+    gif: 'clean_and_jerk.gif',
   },
   {
     id: 'thruster',
@@ -203,7 +215,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper'],
     description: 'Front Squat direkt in einen Push Press – eine fließende Bewegung.',
-    gifUrl: 'https://media.giphy.com/media/xT9IgvJeN1LiOY6uRO/giphy.gif',
+    gif: 'thruster.gif',
   },
   {
     id: 'ohs',
@@ -211,7 +223,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Ganzkörper', 'Schultern'],
     description: 'Kniebeuge mit Langhantel in voller Überkopfstreckung.',
-    gifUrl: '',
+    gif: 'overhead_squat.gif',
   },
   {
     id: 'shoulder-to-oh',
@@ -219,7 +231,7 @@ export const EXERCISES = [
     category: 'Olympic Lifting',
     muscles: ['Schultern', 'Beine'],
     description: 'Langhantel von der Schulter über Kopf – jede Technik erlaubt (Press, Push Press, Jerk).',
-    gifUrl: '',
+    gif: 'shoulder_to_overhead.gif',
   },
 
   // ── Powerlifting / Barbell ──────────────────────────────────────────────────
@@ -229,7 +241,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Rücken', 'Gesäß', 'Hamstrings'],
     description: 'Langhantel vom Boden bis zur Hüftstreckung heben.',
-    gifUrl: '',
+    gif: 'deadlift.gif',
   },
   {
     id: 'sumo-deadlift-high-pull',
@@ -237,7 +249,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Ganzkörper'],
     description: 'Breiter Stand, Langhantel zum Kinn ziehen.',
-    gifUrl: '',
+    gif: 'Sumo_Deadlift_High_Pull.gif',
   },
   {
     id: 'back-squat',
@@ -245,7 +257,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Beine', 'Gesäß'],
     description: 'Langhantel auf dem Trapez, Kniebeuge unter die Parallele.',
-    gifUrl: '',
+    gif: 'back_squat.gif',
   },
   {
     id: 'front-squat',
@@ -253,7 +265,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Beine', 'Core'],
     description: 'Langhantel in der Frontrackposition, Kniebeuge unter die Parallele.',
-    gifUrl: '',
+    gif: 'front_squat.gif',
   },
   {
     id: 'push-press',
@@ -261,7 +273,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Schultern', 'Beine'],
     description: 'Dip mit Beinen, Explosivkraft nutzen, Langhantel über Kopf drücken.',
-    gifUrl: '',
+    gif: 'push_press.gif',
   },
   {
     id: 'strict-press',
@@ -269,7 +281,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Schultern', 'Trizeps'],
     description: 'Langhantel ohne Beinhilfe über Kopf drücken.',
-    gifUrl: '',
+    gif: 'strict_press.gif',
   },
   {
     id: 'bench-press',
@@ -277,7 +289,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Brust', 'Trizeps', 'Schultern'],
     description: 'Langhantel auf der Bank von der Brust zur Armstreckung drücken.',
-    gifUrl: '',
+    gif: 'bench_press.gif',
   },
   {
     id: 'power-jerk',
@@ -285,7 +297,7 @@ export const EXERCISES = [
     category: 'Powerlifting',
     muscles: ['Schultern', 'Beine'],
     description: 'Dip, Explosivkraft, unter die Stange sinken und über Kopf drücken.',
-    gifUrl: '',
+    gif: 'push_jerk.gif',
   },
 
   // ── Kettlebell ────────────────────────────────────────────────────────────────
@@ -295,7 +307,7 @@ export const EXERCISES = [
     category: 'Kettlebell',
     muscles: ['Gesäß', 'Hamstrings', 'Rücken'],
     description: 'Hüftstreckung schwingen KB auf Augen- oder Überkopfhöhe (American).',
-    gifUrl: 'https://media.giphy.com/media/l2SpUmjGBs5m5BXVY/giphy.gif',
+    gif: 'kettlebell_swing.gif',
   },
   {
     id: 'kb-snatch',
@@ -303,7 +315,7 @@ export const EXERCISES = [
     category: 'Kettlebell',
     muscles: ['Ganzkörper'],
     description: 'Einarmiger Swing direkt in Überkopfstreckung.',
-    gifUrl: '',
+    gif: 'kettlebell_snatch.gif',
   },
   {
     id: 'kb-goblet-squat',
@@ -311,7 +323,7 @@ export const EXERCISES = [
     category: 'Kettlebell',
     muscles: ['Beine', 'Core'],
     description: 'KB mit beiden Händen vor der Brust halten, tiefe Kniebeuge.',
-    gifUrl: '',
+    gif: 'Goblet_Squat.gif',
   },
   {
     id: 'turkish-getup',
@@ -319,7 +331,7 @@ export const EXERCISES = [
     category: 'Kettlebell',
     muscles: ['Ganzkörper'],
     description: 'KB einarming über Kopf, von liegend über sitzend in den Stand.',
-    gifUrl: '',
+    gif: 'turkish_get_up.gif',
   },
   {
     id: 'kb-clean',
@@ -327,7 +339,7 @@ export const EXERCISES = [
     category: 'Kettlebell',
     muscles: ['Ganzkörper'],
     description: 'KB einarmig vom Boden in die Rack-Position.',
-    gifUrl: '',
+    gif: 'kettlebell_clean.gif',
   },
 
   // ── Monostructural ────────────────────────────────────────────────────────────
@@ -337,7 +349,7 @@ export const EXERCISES = [
     category: 'Monostructural',
     muscles: ['Ganzkörper'],
     description: 'Laufen in festgelegter Distanz (400m, 800m, 1 Mile usw.).',
-    gifUrl: '',
+    gif: 'laufen.gif',
   },
   {
     id: 'row',
@@ -345,7 +357,7 @@ export const EXERCISES = [
     category: 'Monostructural',
     muscles: ['Ganzkörper'],
     description: 'Ruderergometer, z.B. 500m oder nach Kalorien.',
-    gifUrl: '',
+    gif: 'rudern.gif',
   },
   {
     id: 'assault-bike',
@@ -353,7 +365,7 @@ export const EXERCISES = [
     category: 'Monostructural',
     muscles: ['Ganzkörper'],
     description: 'Luft-Widerstandsfahrrad, Arme und Beine gleichzeitig.',
-    gifUrl: '',
+    gif: 'assault_bike.gif',
   },
   {
     id: 'ski-erg',
@@ -361,7 +373,7 @@ export const EXERCISES = [
     category: 'Monostructural',
     muscles: ['Rücken', 'Core', 'Schultern'],
     description: 'Skilanglauf-Ergometer, beidhändiger Zug.',
-    gifUrl: '',
+    gif: 'ski_erg.gif',
   },
 
   // ── Dumbbell ─────────────────────────────────────────────────────────────────
@@ -371,7 +383,7 @@ export const EXERCISES = [
     category: 'Dumbbell',
     muscles: ['Ganzkörper'],
     description: 'Einarmiger Snatch mit Kurzhantel vom Boden über Kopf.',
-    gifUrl: '',
+    gif: 'Dumbbell_snatch.gif',
   },
   {
     id: 'db-thruster',
@@ -379,7 +391,7 @@ export const EXERCISES = [
     category: 'Dumbbell',
     muscles: ['Ganzkörper'],
     description: 'Kniebeuge mit zwei Kurzhanteln in Schulterposition, direkt in Überkopfstreckung.',
-    gifUrl: '',
+    gif: 'Dumbbell_Thruster.gif',
   },
   {
     id: 'db-clean-jerk',
@@ -387,17 +399,7 @@ export const EXERCISES = [
     category: 'Dumbbell',
     muscles: ['Ganzkörper'],
     description: 'Clean + Jerk mit Kurzhanteln, einar- oder beidarmig.',
-    gifUrl: '',
-  },
-
-  // ── Wall Ball ─────────────────────────────────────────────────────────────────
-  {
-    id: 'wall-ball',
-    name: 'Wall Ball',
-    category: 'Gymnastics',
-    muscles: ['Ganzkörper'],
-    description: 'Aus der tiefen Kniebeugeposition Medizinball auf Ziel an der Wand werfen.',
-    gifUrl: 'https://media.giphy.com/media/3o7TKUlkXQnXHeY2mI/giphy.gif',
+    gif: 'dumbbell_clean_and_jerk.gif',
   },
 
   // ── Bodyweight ────────────────────────────────────────────────────────────────
@@ -407,7 +409,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Beine', 'Gesäß'],
     description: 'Kniebeugetiefstand ohne Gewicht, Hüften unter die Knie, Fersen auf dem Boden.',
-    gifUrl: '',
+    gif: 'air_squat.gif',
   },
   {
     id: 'push-up',
@@ -415,7 +417,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Brust', 'Trizeps', 'Schultern'],
     description: 'Liegestütz – Brust zum Boden, vollständige Armstreckung oben.',
-    gifUrl: '',
+    gif: 'push-up.gif',
   },
   {
     id: 'sit-up',
@@ -423,7 +425,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Core'],
     description: 'Sit-up mit Abmat, Füße Schmetterling – Schultern komplett auf dem Boden.',
-    gifUrl: '',
+    gif: 'sit_up_abmat.gif',
   },
   {
     id: 'ghd-sit-up',
@@ -431,7 +433,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Core', 'Hüftbeuger'],
     description: 'Sit-up am GHD-Gerät, Oberkörper hinter die Hüfte absenken.',
-    gifUrl: '',
+    gif: 'ghd_sit_up.gif',
   },
   {
     id: 'back-extension',
@@ -439,7 +441,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Rücken', 'Gesäß'],
     description: 'Am GHD-Gerät Oberkörper nach unten und wieder hoch – Rückenstrecker.',
-    gifUrl: '',
+    gif: 'back_extension.gif',
   },
   {
     id: 'pistol',
@@ -447,7 +449,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Beine', 'Balance'],
     description: 'Einbeinige tiefe Kniebeuge, freies Bein gestreckt nach vorne.',
-    gifUrl: '',
+    gif: 'pistol_squat.gif',
   },
   {
     id: 'lunge',
@@ -455,7 +457,7 @@ export const EXERCISES = [
     category: 'Bodyweight',
     muscles: ['Beine', 'Gesäß'],
     description: 'Ausfallschritt vorwärts oder mit Gewicht über Kopf (Overhead Lunge).',
-    gifUrl: '',
+    gif: 'lunge.gif',
   },
 ]
 

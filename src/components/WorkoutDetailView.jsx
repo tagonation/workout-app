@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { WORKOUT_TYPES, WORKOUT_TYPE_COLORS, EXERCISES, CATEGORY_COLORS } from '../data/exercises'
+import { WORKOUT_TYPES, WORKOUT_TYPE_COLORS, EXERCISES, CATEGORY_COLORS, gifUrl } from '../data/exercises'
 import ExerciseDemoModal from './ExerciseDemoModal'
 
 function fmtDate(iso) {
@@ -70,7 +70,7 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
           <div className="space-y-2">
             {workout.exercises.map((ex, i) => {
               const exData = getExerciseData(ex.exerciseId)
-              const gifUrl = gifs?.[ex.exerciseId] || exData?.gifUrl || ''
+              const resolvedGif = gifs?.[ex.exerciseId] || gifUrl(exData?.gif) || ''
               const catColors = exData ? CATEGORY_COLORS[exData.category] : null
 
               return (
@@ -86,8 +86,8 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
                       onClick={() => setDemoExercise(exData)}
                       className="flex items-center gap-1.5 text-xs text-gray-500 active:text-gray-300"
                     >
-                      {gifUrl ? (
-                        <img src={gifUrl} alt="" className="w-8 h-8 rounded-lg object-cover" />
+                      {resolvedGif ? (
+                        <img src={resolvedGif} alt="" className="w-8 h-8 rounded-lg object-cover" />
                       ) : (
                         <>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -212,7 +212,7 @@ export default function WorkoutDetailView({ workout, gifs, onBack, onUpdate, onD
       {demoExercise && (
         <ExerciseDemoModal
           exercise={demoExercise}
-          gifUrl={gifs?.[demoExercise.id] || demoExercise.gifUrl}
+          gifUrl={gifs?.[demoExercise.id] || gifUrl(demoExercise.gif)}
           onSetGifUrl={() => {}}
           onClose={() => setDemoExercise(null)}
         />

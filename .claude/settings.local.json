@@ -4,7 +4,8 @@
       "Bash(npm install:*)",
       "Bash(npx vite:*)",
       "Bash(node generate-icons.mjs)",
-      "Bash(npm uninstall:*)"
+      "Bash(npm uninstall:*)",
+      "Bash(find /Users/mathiaskastner/Desktop/Dev/Training -name \"*.gif\" -exec dirname {})"
     ]
   }
 }
