@@ -7,7 +7,7 @@ const LS_END     = 'timer-end-v1'
 const LS_TOTAL   = 'timer-total-v1'
 const LS_MINUTES = 'timer-minutes-v1'
 
-// Comma in filename must be encoded for fetch
+// Comma in filename must be encoded
 const FANFARE_URL = `${import.meta.env.BASE_URL}assets/Triumphant_brass_fanfare%2C_celebratory_and_uplifting.mp3`
 
 export default function Timer({ hasNav }) {
@@ -18,52 +18,29 @@ export default function Timer({ hasNav }) {
   const [running, setRunning]     = useState(false)
   const [finished, setFinished]   = useState(false)
 
-  const endTimeRef      = useRef(null)
-  const intervalRef     = useRef(null)
-  const audioCtxRef     = useRef(null)
-  const fanfareRef      = useRef(null)   // decoded AudioBuffer
-  const keepAliveRef    = useRef(null)   // silent looping source
-  const timerEndedRef   = useRef(false)  // did timer end while screen was off?
+  const endTimeRef  = useRef(null)
+  const intervalRef = useRef(null)
+  const audioRef    = useRef(null)   // HTMLAudioElement — reliable on iOS PWA
 
-  // ── Load + decode fanfare (called once after first user gesture) ────────────
-  const initAudio = useCallback(async () => {
-    if (audioCtxRef.current) return
-    try {
-      const ctx = new (window.AudioContext || window.webkitAudioContext)()
-      audioCtxRef.current = ctx
-
-      // Silent 1-second loop keeps iOS audio session alive in background
-      const silent = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
-      const keeper = ctx.createBufferSource()
-      keeper.buffer = silent
-      keeper.loop   = true
-      keeper.connect(ctx.destination)
-      keeper.start()
-      keepAliveRef.current = keeper
-
-      // Load + decode fanfare
-      const res = await fetch(FANFARE_URL)
-      if (!res.ok) throw new Error(`HTTP ${res.status}`)
-      const raw = await res.arrayBuffer()
-      fanfareRef.current = await ctx.decodeAudioData(raw)
-    } catch (e) {
-      console.error('Audio init failed:', e)
-    }
+  // ── Unlock audio on first user gesture ─────────────────────────────────────
+  const initAudio = useCallback(() => {
+    if (audioRef.current) return
+    const audio = new Audio(FANFARE_URL)
+    audio.preload = 'auto'
+    audioRef.current = audio
+    // Play + immediately pause to unlock the element for future non-gesture calls
+    audio.play().then(() => {
+      audio.pause()
+      audio.currentTime = 0
+    }).catch(() => {})
   }, [])
 
-  // ── Play fanfare immediately ────────────────────────────────────────────────
-  const playFanfare = useCallback(async () => {
-    const ctx = audioCtxRef.current
-    if (!ctx || !fanfareRef.current) return
-    try {
-      if (ctx.state === 'suspended') await ctx.resume()
-      const src = ctx.createBufferSource()
-      src.buffer = fanfareRef.current
-      src.connect(ctx.destination)
-      src.start(0)
-    } catch (e) {
-      console.error('Playback failed:', e)
-    }
+  // ── Play fanfare ────────────────────────────────────────────────────────────
+  const playFanfare = useCallback(() => {
+    const audio = audioRef.current
+    if (!audio) return
+    audio.currentTime = 0
+    audio.play().catch(e => console.error('Playback failed:', e))
   }, [])
 
   // ── Finish ─────────────────────────────────────────────────────────────────
@@ -97,12 +74,8 @@ export default function Timer({ hasNav }) {
 
   // ── Screen unlock: play fanfare if timer ended while screen was off ────────
   useEffect(() => {
-    const onVisible = async () => {
+    const onVisible = () => {
       if (document.hidden) return
-      // Resume audio context iOS may have suspended
-      if (audioCtxRef.current?.state === 'suspended') {
-        await audioCtxRef.current.resume()
-      }
       if (!endTimeRef.current) return
       const left = Math.round((endTimeRef.current - Date.now()) / 1000)
       if (left <= 0) {
@@ -137,8 +110,8 @@ export default function Timer({ hasNav }) {
   }, [])
 
   // ── Controls ───────────────────────────────────────────────────────────────
-  const start = async () => {
-    await initAudio() // must be triggered by user gesture
+  const start = () => {
+    initAudio() // must be triggered by user gesture
     const secs  = finished ? total : remaining
     const endMs = Date.now() + secs * 1000
     endTimeRef.current = endMs
