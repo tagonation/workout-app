@@ -56,7 +56,6 @@ export default function Timer({ hasNav }) {
     setRunning(false)
     setFinished(true)
     setRemaining(0)
-    timerEndedRef.current = false
     playFanfare()
   }, [playFanfare])
 
