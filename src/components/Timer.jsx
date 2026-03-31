@@ -1,58 +1,114 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
-const R = 54
+const R    = 54
 const CIRC = 2 * Math.PI * R
 
 const LS_END     = 'timer-end-v1'
 const LS_TOTAL   = 'timer-total-v1'
 const LS_MINUTES = 'timer-minutes-v1'
 
-function playBeep() {
-  try {
-    const ctx = new AudioContext()
-    const osc = ctx.createOscillator()
-    const gain = ctx.createGain()
-    osc.connect(gain)
-    gain.connect(ctx.destination)
-    osc.frequency.value = 880
-    gain.gain.setValueAtTime(0.5, ctx.currentTime)
-    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1)
-    osc.start(ctx.currentTime)
-    osc.stop(ctx.currentTime + 1)
-  } catch {}
-}
+const FANFARE_PATH = `${import.meta.env.BASE_URL}assets/Triumphant_brass_fanfare,_celebratory_and_uplifting.mp3`
 
 export default function Timer({ hasNav }) {
-  const [open, setOpen]         = useState(false)
-  const [minutes, setMinutes]   = useState(() => parseInt(localStorage.getItem(LS_MINUTES) || '10'))
-  const [total, setTotal]       = useState(() => parseInt(localStorage.getItem(LS_TOTAL)   || '600'))
+  const [open, setOpen]       = useState(false)
+  const [minutes, setMinutes] = useState(() => parseInt(localStorage.getItem(LS_MINUTES) || '10'))
+  const [total, setTotal]     = useState(() => parseInt(localStorage.getItem(LS_TOTAL)   || '600'))
   const [remaining, setRemaining] = useState(600)
-  const [running, setRunning]   = useState(false)
-  const [finished, setFinished] = useState(false)
+  const [running, setRunning] = useState(false)
+  const [finished, setFinished]   = useState(false)
 
-  const endTimeRef  = useRef(null)   // absolute ms timestamp when timer ends
-  const intervalRef = useRef(null)
+  const endTimeRef        = useRef(null)
+  const intervalRef       = useRef(null)
+  const audioCtxRef       = useRef(null)
+  const fanfareBufferRef  = useRef(null)
+  const scheduledSrcRef   = useRef(null)
+  const keepAliveSrcRef   = useRef(null)
+  const audioReadyRef     = useRef(false)
 
-  // ── Finish helper ──────────────────────────────────────────────────────────
-  const finish = useCallback(() => {
+  // ── Load fanfare MP3 into decoded buffer ───────────────────────────────────
+  const loadFanfare = useCallback(async (ctx) => {
+    if (fanfareBufferRef.current) return
+    try {
+      const res = await fetch(FANFARE_PATH)
+      const buf = await res.arrayBuffer()
+      fanfareBufferRef.current = await ctx.decodeAudioData(buf)
+    } catch (e) {
+      console.warn('Fanfare load error:', e)
+    }
+  }, [])
+
+  // ── Init audio (must be called from user gesture) ──────────────────────────
+  const initAudio = useCallback(async () => {
+    if (audioReadyRef.current) return
+    const ctx = new AudioContext()
+    audioCtxRef.current = ctx
+    if (ctx.state === 'suspended') await ctx.resume()
+    await loadFanfare(ctx)
+
+    // Silent looping buffer keeps iOS audio session alive in background
+    const silentBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate)
+    const keepAlive = ctx.createBufferSource()
+    keepAlive.buffer = silentBuf
+    keepAlive.loop = true
+    keepAlive.connect(ctx.destination)
+    keepAlive.start()
+    keepAliveSrcRef.current = keepAlive
+
+    audioReadyRef.current = true
+  }, [loadFanfare])
+
+  // ── Schedule fanfare at a specific audio-clock offset (seconds from now) ──
+  const scheduleFanfare = useCallback((secondsFromNow) => {
+    const ctx = audioCtxRef.current
+    if (!ctx || !fanfareBufferRef.current) return
+    // cancel previous
+    if (scheduledSrcRef.current) {
+      try { scheduledSrcRef.current.stop() } catch {}
+    }
+    const src = ctx.createBufferSource()
+    src.buffer = fanfareBufferRef.current
+    src.connect(ctx.destination)
+    src.start(ctx.currentTime + Math.max(0, secondsFromNow))
+    scheduledSrcRef.current = src
+  }, [])
+
+  const cancelFanfare = useCallback(() => {
+    if (scheduledSrcRef.current) {
+      try { scheduledSrcRef.current.stop() } catch {}
+      scheduledSrcRef.current = null
+    }
+  }, [])
+
+  const playFanfareNow = useCallback(() => {
+    const ctx = audioCtxRef.current
+    if (!ctx || !fanfareBufferRef.current) return
+    cancelFanfare()
+    const src = ctx.createBufferSource()
+    src.buffer = fanfareBufferRef.current
+    src.connect(ctx.destination)
+    src.start(ctx.currentTime)
+    scheduledSrcRef.current = src
+  }, [cancelFanfare])
+
+  // ── Finish ─────────────────────────────────────────────────────────────────
+  const finish = useCallback((playSound = true) => {
     clearInterval(intervalRef.current)
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
     setRunning(false)
     setFinished(true)
     setRemaining(0)
-    playBeep()
-  }, [])
+    if (playSound) playFanfareNow()
+  }, [playFanfareNow])
 
-  // ── Tick: use wall clock so screen-lock doesn't matter ────────────────────
+  // ── Tick ───────────────────────────────────────────────────────────────────
   const tick = useCallback(() => {
     if (!endTimeRef.current) return
     const left = Math.round((endTimeRef.current - Date.now()) / 1000)
-    if (left <= 0) { finish(); return }
+    if (left <= 0) { finish(false); return } // fanfare already scheduled via Web Audio
     setRemaining(left)
   }, [finish])
 
-  // ── Start interval when running ────────────────────────────────────────────
   useEffect(() => {
     if (running) {
       intervalRef.current = setInterval(tick, 500)
@@ -62,24 +118,33 @@ export default function Timer({ hasNav }) {
     return () => clearInterval(intervalRef.current)
   }, [running, tick])
 
-  // ── Visibility change: screen unlock / app foreground ─────────────────────
+  // ── Visibility change: screen unlock ───────────────────────────────────────
   useEffect(() => {
-    const onVisible = () => {
-      if (document.hidden || !endTimeRef.current) return
+    const onVisible = async () => {
+      if (document.hidden) return
+      // Resume audio context if suspended by OS
+      if (audioCtxRef.current?.state === 'suspended') {
+        await audioCtxRef.current.resume()
+      }
+      if (!endTimeRef.current) return
       const left = Math.round((endTimeRef.current - Date.now()) / 1000)
-      if (left <= 0) { finish() } else { setRemaining(left) }
+      if (left <= 0) {
+        finish(true) // play fanfare now (screen was off when it finished)
+      } else {
+        setRemaining(left)
+      }
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [finish])
 
-  // ── Restore state on mount (after PWA reopen) ──────────────────────────────
+  // ── Restore state on mount ─────────────────────────────────────────────────
   useEffect(() => {
     const savedEnd = localStorage.getItem(LS_END)
     if (!savedEnd) return
-    const endMs = parseInt(savedEnd)
-    const left  = Math.round((endMs - Date.now()) / 1000)
-    const savedTotal = parseInt(localStorage.getItem(LS_TOTAL) || '600')
+    const endMs   = parseInt(savedEnd)
+    const left    = Math.round((endMs - Date.now()) / 1000)
+    const savedTotal = parseInt(localStorage.getItem(LS_TOTAL)   || '600')
     const savedMin   = parseInt(localStorage.getItem(LS_MINUTES) || '10')
     setTotal(savedTotal)
     setMinutes(savedMin)
@@ -87,6 +152,7 @@ export default function Timer({ hasNav }) {
       endTimeRef.current = endMs
       setRemaining(left)
       setRunning(true)
+      // Note: fanfare needs to be rescheduled after user interaction
     } else {
       localStorage.removeItem(LS_END)
       setFinished(true)
@@ -95,18 +161,26 @@ export default function Timer({ hasNav }) {
   }, [])
 
   // ── Controls ───────────────────────────────────────────────────────────────
-  const start = () => {
+  const start = async () => {
+    await initAudio() // user gesture → unlocks audio session
+
+    const secs  = finished ? total : remaining
+    const endMs = Date.now() + secs * 1000
+    endTimeRef.current = endMs
+    localStorage.setItem(LS_END, endMs.toString())
+
+    // Schedule fanfare via audio clock — works even when screen is off
+    scheduleFanfare(secs)
+
     if (finished) {
       setRemaining(total)
       setFinished(false)
     }
-    const endMs = Date.now() + (finished ? total : remaining) * 1000
-    endTimeRef.current = endMs
-    localStorage.setItem(LS_END, endMs.toString())
     setRunning(true)
   }
 
   const pause = () => {
+    cancelFanfare()
     if (endTimeRef.current) {
       const left = Math.max(0, Math.round((endTimeRef.current - Date.now()) / 1000))
       setRemaining(left)
@@ -117,6 +191,7 @@ export default function Timer({ hasNav }) {
   }
 
   const reset = () => {
+    cancelFanfare()
     clearInterval(intervalRef.current)
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
@@ -127,6 +202,7 @@ export default function Timer({ hasNav }) {
 
   const setDuration = (min) => {
     if (running) return
+    cancelFanfare()
     const secs = min * 60
     setMinutes(min)
     setTotal(secs)
@@ -134,16 +210,16 @@ export default function Timer({ hasNav }) {
     setFinished(false)
     endTimeRef.current = null
     localStorage.removeItem(LS_END)
-    localStorage.setItem(LS_TOTAL, secs.toString())
+    localStorage.setItem(LS_TOTAL,   secs.toString())
     localStorage.setItem(LS_MINUTES, min.toString())
   }
 
   // ── Display ────────────────────────────────────────────────────────────────
-  const progress    = total > 0 ? remaining / total : 1
-  const dashOffset  = CIRC * (1 - progress)
+  const progress   = total > 0 ? remaining / total : 1
+  const dashOffset = CIRC * (1 - progress)
   const mm = String(Math.floor(remaining / 60)).padStart(2, '0')
   const ss = String(remaining % 60).padStart(2, '0')
-  const ringColor   = finished ? '#6abf7a' : '#e8956d'
+  const ringColor  = finished ? '#6abf7a' : '#e8956d'
   const bottomClass = hasNav ? 'bottom-24' : 'bottom-6'
 
   return (
@@ -155,8 +231,7 @@ export default function Timer({ hasNav }) {
           className={`fixed right-4 ${bottomClass} z-30 shadow-md active:scale-95 transition-transform flex items-center justify-center
             ${running || finished
               ? 'h-10 px-3.5 rounded-full bg-white border-2 border-[#e8956d] gap-1.5'
-              : 'w-12 h-12 rounded-full bg-white border-2 border-[#ede8e1]'
-            }`}
+              : 'w-12 h-12 rounded-full bg-white border-2 border-[#ede8e1]'}`}
         >
           {running ? (
             <>
@@ -164,7 +239,7 @@ export default function Timer({ hasNav }) {
               <span className="text-sm font-bold text-[#e8956d] tabular-nums">{mm}:{ss}</span>
             </>
           ) : finished ? (
-            <span className="text-sm font-bold text-[#6abf7a]">✓</span>
+            <span className="text-lg">🎉</span>
           ) : (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e8956d" strokeWidth="2">
               <circle cx="12" cy="12" r="10"/>
@@ -188,10 +263,8 @@ export default function Timer({ hasNav }) {
             <div className="px-6 pt-1 pb-10">
               <div className="flex items-center justify-between mb-5">
                 <h2 className="text-lg font-bold text-[#1a1511]">Timer</h2>
-                <button
-                  onClick={() => setOpen(false)}
-                  className="w-8 h-8 rounded-full bg-[#f5f0ea] flex items-center justify-center text-[#6b5d52]"
-                >
+                <button onClick={() => setOpen(false)}
+                  className="w-8 h-8 rounded-full bg-[#f5f0ea] flex items-center justify-center text-[#6b5d52]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                   </svg>
@@ -209,11 +282,10 @@ export default function Timer({ hasNav }) {
                       const r1 = isMajor ? 58 : 60
                       return (
                         <line key={i}
-                          x1={64 + r1  * Math.cos(rad)} y1={64 + r1  * Math.sin(rad)}
-                          x2={64 + 63  * Math.cos(rad)} y2={64 + 63  * Math.sin(rad)}
+                          x1={64 + r1 * Math.cos(rad)} y1={64 + r1 * Math.sin(rad)}
+                          x2={64 + 63 * Math.cos(rad)} y2={64 + 63 * Math.sin(rad)}
                           stroke={isMajor ? '#d4c4b8' : '#ede8e1'}
-                          strokeWidth={isMajor ? 1.5 : 1}
-                          strokeLinecap="round"
+                          strokeWidth={isMajor ? 1.5 : 1} strokeLinecap="round"
                         />
                       )
                     })}
@@ -228,9 +300,9 @@ export default function Timer({ hasNav }) {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <span className={`text-4xl font-bold tabular-nums tracking-tight ${finished ? 'text-[#6abf7a]' : 'text-[#1a1511]'}`}>
-                      {mm}:{ss}
+                      {finished ? '🎉' : `${mm}:${ss}`}
                     </span>
-                    <span className="text-xs text-[#a89888] mt-0.5">
+                    <span className="text-xs text-[#a89888] mt-1">
                       {finished ? 'Fertig!' : `${minutes} min`}
                     </span>
                   </div>
