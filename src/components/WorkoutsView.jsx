@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import { WORKOUT_TYPE_COLORS, WORKOUT_TYPES } from '../data/exercises'
 
 function fmtDate(iso) {
@@ -5,11 +6,37 @@ function fmtDate(iso) {
   return new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: 'short' }).format(d)
 }
 
+function getLetter(workout) {
+  const name = workout.name?.trim()
+  if (!name) return '#'
+  const ch = name[0].toUpperCase()
+  return /[A-Z]/.test(ch) ? ch : '#'
+}
+
 export default function WorkoutsView({ workouts, onSelect, onCreate }) {
-  const sorted = [...workouts].sort((a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt))
+  const sectionRefs = useRef({})
+
+  // workouts already sorted alphabetically from the hook
+  // group by first letter
+  const groups = []
+  for (const w of workouts) {
+    const letter = getLetter(w)
+    const last = groups[groups.length - 1]
+    if (last && last.letter === letter) {
+      last.items.push(w)
+    } else {
+      groups.push({ letter, items: [w] })
+    }
+  }
+
+  const letters = groups.map(g => g.letter)
+
+  const scrollTo = (letter) => {
+    sectionRefs.current[letter]?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 
   return (
-    <div className="px-4 pt-6">
+    <div className="relative px-4 pt-6 pr-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-[#1a1511]">Meine Workouts</h1>
         <button onClick={onCreate} className="text-[#e8956d] text-sm font-medium active:opacity-70">
@@ -25,11 +52,37 @@ export default function WorkoutsView({ workouts, onSelect, onCreate }) {
         </div>
       )}
 
-      <div className="space-y-3">
-        {sorted.map(w => (
-          <WorkoutCard key={w.id} workout={w} onClick={() => onSelect(w.id)} />
+      <div className="space-y-5 pb-6">
+        {groups.map(({ letter, items }) => (
+          <div key={letter} ref={el => sectionRefs.current[letter] = el}>
+            {/* Letter header */}
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs font-bold text-[#e8956d] w-5">{letter}</span>
+              <div className="flex-1 h-px bg-[#ede8e1]" />
+            </div>
+            <div className="space-y-3">
+              {items.map(w => (
+                <WorkoutCard key={w.id} workout={w} onClick={() => onSelect(w.id)} />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
+
+      {/* Alphabet index — right edge, only letters with workouts */}
+      {letters.length > 0 && (
+        <div className="fixed right-1.5 top-1/2 -translate-y-1/2 z-20 flex flex-col items-center gap-0.5">
+          {letters.map(letter => (
+            <button
+              key={letter}
+              onClick={() => scrollTo(letter)}
+              className="text-[10px] font-bold text-[#e8956d] w-5 h-5 flex items-center justify-center active:bg-[#e8956d] active:text-white rounded-full"
+            >
+              {letter}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
