@@ -596,6 +596,14 @@ export const EXERCISES = [
     gif: 'push-up.gif',
   },
   {
+    id: 'diamond-push-up',
+    name: 'Diamond Push-up',
+    category: 'Bodyweight',
+    muscles: ['Trizeps', 'Brust', 'Schultern'],
+    description: 'Liegestütz mit Händen eng zusammen (Diamantform), Fokus auf Trizeps.',
+    gif: 'Diamond_Push_up.gif',
+  },
+  {
     id: 'sit-up',
     name: 'Sit-up (Abmat)',
     category: 'Bodyweight',
@@ -634,6 +642,14 @@ export const EXERCISES = [
     muscles: ['Beine', 'Gesäß'],
     description: 'Ausfallschritt vorwärts oder mit Gewicht über Kopf (Overhead Lunge).',
     gif: 'lunge.gif',
+  },
+  {
+    id: 'v-up',
+    name: 'V-Up',
+    category: 'Bodyweight',
+    muscles: ['Core', 'Hüftbeuger'],
+    description: 'Auf dem Rücken liegend, Arme und Beine gleichzeitig zur Mitte heben – V-Form.',
+    gif: 'v_up.gif',
   },
 ]
 
