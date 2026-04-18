@@ -685,6 +685,67 @@ export const WORKOUT_TYPES = [
   { id: 'custom',    label: 'Custom',    desc: 'Eigenes Format' },
 ]
 
+// ── Workout Focus Categorization ─────────────────────────────────────────────
+
+// Each muscle maps to a focus category with a weight
+const MUSCLE_FOCUS_WEIGHTS = {
+  'Ganzkörper': { gesamt: 4 },
+  'Rücken':     { ruecken: 4, oberk: 1 },
+  'Bizeps':     { ruecken: 2, oberk: 1 },
+  'Brust':      { brust: 4, oberk: 1 },
+  'Trizeps':    { brust: 2, oberk: 2 },
+  'Schultern':  { oberk: 3 },
+  'Core':       { oberk: 1, gesamt: 1 },
+  'Obliques':   { oberk: 1, gesamt: 1 },
+  'Beine':      { bein: 4, unterk: 1 },
+  'Gesäß':      { bein: 2, unterk: 3 },
+  'Hamstrings': { bein: 2, unterk: 3 },
+  'Waden':      { bein: 3 },
+  'Hüftbeuger': { bein: 1, unterk: 3 },
+}
+
+export const FOCUS_LABELS = {
+  gesamt:  'Gesamtkörper',
+  ruecken: 'Rückenlastig',
+  brust:   'Brustlastig',
+  oberk:   'Oberkörperlastig',
+  bein:    'Beinlastig',
+  unterk:  'Unterkörperlastig',
+}
+
+export const FOCUS_COLORS = {
+  gesamt:  { bg: 'bg-violet-50',  text: 'text-violet-600',  border: 'border-violet-200' },
+  ruecken: { bg: 'bg-blue-50',    text: 'text-blue-600',    border: 'border-blue-200'   },
+  brust:   { bg: 'bg-rose-50',    text: 'text-rose-600',    border: 'border-rose-200'   },
+  oberk:   { bg: 'bg-amber-50',   text: 'text-amber-600',   border: 'border-amber-200'  },
+  bein:    { bg: 'bg-green-50',   text: 'text-green-600',   border: 'border-green-200'  },
+  unterk:  { bg: 'bg-teal-50',    text: 'text-teal-600',    border: 'border-teal-200'   },
+}
+
+export function computeWorkoutFocus(workout, exerciseList) {
+  const scores = { gesamt: 0, ruecken: 0, brust: 0, oberk: 0, bein: 0, unterk: 0 }
+
+  for (const ex of workout.exercises || []) {
+    const found = exerciseList.find(e => e.id === ex.exerciseId)
+    if (!found) continue
+    for (const muscle of found.muscles || []) {
+      const weights = MUSCLE_FOCUS_WEIGHTS[muscle]
+      if (!weights) continue
+      for (const [focus, weight] of Object.entries(weights)) {
+        scores[focus] += weight
+      }
+    }
+  }
+
+  const total = Object.values(scores).reduce((a, b) => a + b, 0)
+  if (total === 0) return 'gesamt'
+
+  // If Gesamtkörper score exceeds 35% of total, classify as full-body
+  if (scores.gesamt / total > 0.35) return 'gesamt'
+
+  return Object.entries(scores).reduce((best, cur) => cur[1] > best[1] ? cur : best)[0]
+}
+
 export const WORKOUT_TYPE_COLORS = {
   'for-time': 'text-rose-500',
   'amrap':    'text-orange-500',

@@ -1,5 +1,5 @@
-import { useRef } from 'react'
-import { WORKOUT_TYPE_COLORS, WORKOUT_TYPES } from '../data/exercises'
+import { useRef, useState } from 'react'
+import { WORKOUT_TYPE_COLORS, WORKOUT_TYPES, EXERCISES, FOCUS_LABELS, FOCUS_COLORS, computeWorkoutFocus } from '../data/exercises'
 
 function fmtDate(iso) {
   const d = new Date(iso)
@@ -13,13 +13,22 @@ function getLetter(workout) {
   return /[A-Z]/.test(ch) ? ch : '#'
 }
 
+const FOCUS_FILTERS = [
+  { key: 'all', label: 'Alle' },
+  ...Object.entries(FOCUS_LABELS).map(([key, label]) => ({ key, label })),
+]
+
 export default function WorkoutsView({ workouts, onSelect, onCreate }) {
   const sectionRefs = useRef({})
+  const [activeFilter, setActiveFilter] = useState('all')
 
-  // workouts already sorted alphabetically from the hook
+  const filtered = activeFilter === 'all'
+    ? workouts
+    : workouts.filter(w => computeWorkoutFocus(w, EXERCISES) === activeFilter)
+
   // group by first letter
   const groups = []
-  for (const w of workouts) {
+  for (const w of filtered) {
     const letter = getLetter(w)
     const last = groups[groups.length - 1]
     if (last && last.letter === letter) {
@@ -37,14 +46,37 @@ export default function WorkoutsView({ workouts, onSelect, onCreate }) {
 
   return (
     <div className="relative px-4 pt-6 pr-10">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold tracking-tight text-[#1a1511]">Meine Workouts</h1>
         <button onClick={onCreate} className="text-[#e8956d] text-sm font-medium active:opacity-70">
           + Neu
         </button>
       </div>
 
-      {workouts.length === 0 && (
+      {/* Focus filter chips */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-2 -mx-4 px-4 scrollbar-none">
+        {FOCUS_FILTERS.map(({ key, label }) => {
+          const active = activeFilter === key
+          const colors = key !== 'all' ? FOCUS_COLORS[key] : null
+          return (
+            <button
+              key={key}
+              onClick={() => setActiveFilter(key)}
+              className={`flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full border transition-colors ${
+                active
+                  ? key === 'all'
+                    ? 'bg-[#e8956d] text-white border-[#e8956d]'
+                    : `${colors.bg} ${colors.text} ${colors.border}`
+                  : 'bg-white text-[#a89888] border-[#ede8e1]'
+              }`}
+            >
+              {label}
+            </button>
+          )
+        })}
+      </div>
+
+      {filtered.length === 0 && workouts.length === 0 && (
         <div className="text-center py-20 text-[#a89888]">
           <div className="text-5xl mb-4">🏋️</div>
           <p className="text-lg font-medium text-[#6b5d52] mb-1">Noch kein Workout</p>
@@ -52,10 +84,15 @@ export default function WorkoutsView({ workouts, onSelect, onCreate }) {
         </div>
       )}
 
+      {filtered.length === 0 && workouts.length > 0 && (
+        <div className="text-center py-16 text-[#a89888]">
+          <p className="text-sm">Keine Workouts in dieser Kategorie.</p>
+        </div>
+      )}
+
       <div className="space-y-5 pb-6">
         {groups.map(({ letter, items }) => (
           <div key={letter} ref={el => sectionRefs.current[letter] = el}>
-            {/* Letter header */}
             <div className="flex items-center gap-2 mb-2">
               <span className="text-xs font-bold text-[#e8956d] w-5">{letter}</span>
               <div className="flex-1 h-px bg-[#ede8e1]" />
@@ -91,6 +128,9 @@ function WorkoutCard({ workout, onClick }) {
   const typeInfo = WORKOUT_TYPES.find(t => t.id === workout.type)
   const typeColor = WORKOUT_TYPE_COLORS[workout.type] || 'text-[#a89888]'
   const exercises = workout.exercises || []
+  const focus = computeWorkoutFocus(workout, EXERCISES)
+  const focusColors = FOCUS_COLORS[focus]
+  const focusLabel = FOCUS_LABELS[focus]
 
   return (
     <button
@@ -118,16 +158,21 @@ function WorkoutCard({ workout, onClick }) {
         </div>
       )}
 
-      {workout.result?.score && (
-        <div className="flex items-center gap-1.5 mt-2">
+      <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+        {exercises.length > 0 && (
+          <span className={`text-xs px-2 py-0.5 rounded-full font-medium border ${focusColors.bg} ${focusColors.text} ${focusColors.border}`}>
+            {focusLabel}
+          </span>
+        )}
+        {workout.result?.score && (
           <span className="text-xs bg-[#fde8dc] text-[#c4663d] px-2 py-0.5 rounded-full font-medium">
             {workout.result.score}
           </span>
-          {workout.result.rxd && (
-            <span className="text-xs bg-[#dcf0e0] text-[#3d8c52] px-2 py-0.5 rounded-full font-medium">RX</span>
-          )}
-        </div>
-      )}
+        )}
+        {workout.result?.rxd && (
+          <span className="text-xs bg-[#dcf0e0] text-[#3d8c52] px-2 py-0.5 rounded-full font-medium">RX</span>
+        )}
+      </div>
     </button>
   )
 }
